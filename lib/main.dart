@@ -11,6 +11,7 @@ class TetrisApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Tetris',
+
       home: TetrisGame(),
     );
   }
@@ -196,30 +197,27 @@ class _TetrisGameState extends State<TetrisGame> {
       backgroundColor: Color.fromRGBO(119, 141, 169, 100),
       body: Center(
         child: Column(
-
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            Text('Score: $score', style: TextStyle(fontSize: 24)),
+            SizedBox(height: 20),
             Container(
-              width: GameBoard.width * 20.0,
-              height: GameBoard.height * 20.0,
+              width: GameBoard.width * 30.0,
+              height: GameBoard.height * 30.0,
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.redAccent, width: 2.0),
+                border: Border.all(color: Colors.white70, width: 2.0),
                 borderRadius: BorderRadius.all(Radius.circular(10.0)),
               ),
               child: CustomPaint(
                 painter: TetrisPainter(gameBoard, currentTetromino, currentPosition),
               ),
             ),
-
-            SizedBox(height: 20),
-            Text('Score: $score'),
-
             if (isGameOver) Text('Game Over'),
           ],
         ),
       ),
       floatingActionButton: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           FloatingActionButton(
             onPressed: _moveLeft,
@@ -277,7 +275,26 @@ class TetrisPainter extends CustomPainter {
         paint,
       );
     }
+
+    // Rysowanie siatki
+    paint.color = Colors.grey.withOpacity(0.5);
+    paint.strokeWidth = 1.0;
+    for (int x = 0; x <= GameBoard.width; x++) {
+      canvas.drawLine(
+        Offset(x * cellSize, 0),
+        Offset(x * cellSize, GameBoard.height * cellSize),
+        paint,
+      );
+    }
+    for (int y = 0; y <= GameBoard.height; y++) {
+      canvas.drawLine(
+        Offset(0, y * cellSize),
+        Offset(GameBoard.width * cellSize, y * cellSize),
+        paint,
+      );
+    }
   }
+
 
   @override
   bool shouldRepaint(covariant TetrisPainter oldDelegate) {
