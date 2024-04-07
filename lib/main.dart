@@ -225,12 +225,13 @@ class _TetrisGameState extends State<TetrisGame> {
               Column(
                 children: [
                   SizedBox(height: 20),
-                  Text('Game Over', style: TextStyle(fontSize: 24)),
-                  SizedBox(height: 20),
+                  Text('Game Over', style: TextStyle(fontSize: 24), selectionColor: Colors.red,),
+                  // SizedBox(height: 50),
                   ElevatedButton(
                     onPressed: _restartGame,
                     child: Text('Restart'),
                   ),
+                  SizedBox(height: 50),
                 ],
               ),
           ],
