@@ -102,6 +102,15 @@ class _TetrisGameState extends State<TetrisGame> {
     _timer = Timer.periodic(Duration(milliseconds: 500), (_) => _tick());
   }
 
+  void _restartGame() {
+    setState(() {
+      isGameOver = false;
+      score = 0;
+      gameBoard = GameBoard();
+      _startGame();
+    });
+  }
+
   void _generateNewTetromino() {
     currentTetromino = Tetromino.all[Random().nextInt(Tetromino.all.length)];
     currentPosition = Offset(3, 0);
@@ -212,7 +221,18 @@ class _TetrisGameState extends State<TetrisGame> {
                 painter: TetrisPainter(gameBoard, currentTetromino, currentPosition),
               ),
             ),
-            if (isGameOver) Text('Game Over'),
+            if (isGameOver)
+              Column(
+                children: [
+                  SizedBox(height: 20),
+                  Text('Game Over', style: TextStyle(fontSize: 24)),
+                  SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: _restartGame,
+                    child: Text('Restart'),
+                  ),
+                ],
+              ),
           ],
         ),
       ),
@@ -303,3 +323,4 @@ class TetrisPainter extends CustomPainter {
         oldDelegate.currentPosition != currentPosition;
   }
 }
+
