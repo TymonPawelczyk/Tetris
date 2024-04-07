@@ -85,6 +85,7 @@ class _TetrisGameState extends State<TetrisGame> {
   late Tetromino currentTetromino;
   Offset currentPosition = Offset(3, 0);
   GameBoard gameBoard = GameBoard();
+  // Color backgroudColor = Colors.black;
   int score = 0;
   late Timer _timer;
   bool isGameOver = false;
@@ -192,19 +193,27 @@ class _TetrisGameState extends State<TetrisGame> {
       appBar: AppBar(
         title: Text('Tetris'),
       ),
+      backgroundColor: Color.fromRGBO(119, 141, 169, 100),
       body: Center(
         child: Column(
+
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
               width: GameBoard.width * 20.0,
               height: GameBoard.height * 20.0,
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.redAccent, width: 2.0),
+                borderRadius: BorderRadius.all(Radius.circular(10.0)),
+              ),
               child: CustomPaint(
                 painter: TetrisPainter(gameBoard, currentTetromino, currentPosition),
               ),
             ),
+
             SizedBox(height: 20),
             Text('Score: $score'),
+
             if (isGameOver) Text('Game Over'),
           ],
         ),
