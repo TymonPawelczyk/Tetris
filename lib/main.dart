@@ -89,17 +89,23 @@ class _TetrisGameState extends State<TetrisGame> {
   int score = 0;
   late Timer _timer;
   bool isGameOver = false;
+  bool isGameStarted = false;
 
   @override
   void initState() {
     super.initState();
-    _startGame();
+    _generateNewTetromino();
   }
 
   void _startGame() {
-    nextTetromino = Tetromino.all[Random().nextInt(Tetromino.all.length)];
-    _generateNewTetromino();
-    _timer = Timer.periodic(Duration(milliseconds: 500), (_) => _tick());
+    setState(() {
+      isGameStarted = true;
+      isGameOver = false;
+      score = 0;
+      gameBoard = GameBoard();
+      _generateNewTetromino();
+      _timer = Timer.periodic(Duration(milliseconds: 500), (_) => _tick());
+    });
   }
 
   void _restartGame() {
@@ -112,7 +118,7 @@ class _TetrisGameState extends State<TetrisGame> {
   }
 
   void _generateNewTetromino() {
-    currentTetromino = nextTetromino;
+    currentTetromino = Tetromino.all[Random().nextInt(Tetromino.all.length)];
     nextTetromino = Tetromino.all[Random().nextInt(Tetromino.all.length)];
     currentPosition = Offset(3, 0);
   }
@@ -154,6 +160,7 @@ class _TetrisGameState extends State<TetrisGame> {
         _timer.cancel();
         setState(() {
           isGameOver = true;
+          isGameStarted = false;
         });
       } else {
         _generateNewTetromino();
@@ -209,52 +216,60 @@ class _TetrisGameState extends State<TetrisGame> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('Score: $score', style: TextStyle(fontSize: 24)),
-            SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 50,  // Zmniejszono szerokość kontenera dla następnego bloku
-                  height: 50, // Zmniejszono wysokość kontenera dla następnego bloku
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.white70, width: 2.0),
-                    borderRadius: BorderRadius.all(Radius.circular(10.0)),
-                  ),
-                  child: CustomPaint(
-                    painter: NextTetrominoPainter(nextTetromino),
-                  ),
-                ),
-                SizedBox(width: 20),
-                Container(
-                  width: GameBoard.width * 20.0,  // Zwiększono szerokość pola gry
-                  height: GameBoard.height * 20.0, // Zwiększono wysokość pola gry
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.white70, width: 2.0),
-                    borderRadius: BorderRadius.all(Radius.circular(10.0)),
-                  ),
-                  child: CustomPaint(
-                    painter: TetrisPainter(gameBoard, currentTetromino, currentPosition),
-                  ),
-                ),
-              ],
-            ),
-            if (isGameOver)
+            if (isGameStarted)
               Column(
                 children: [
+                  Text('Score: $score', style: TextStyle(fontSize: 24)),
                   SizedBox(height: 20),
-                  Text('Game Over', style: TextStyle(fontSize: 24), selectionColor: Colors.red,),
-                  ElevatedButton(
-                    onPressed: _restartGame,
-                    child: Text('Restart'),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.white70, width: 2.0),
+                          borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                        ),
+                        child: CustomPaint(
+                          painter: NextTetrominoPainter(nextTetromino),
+                        ),
+                      ),
+                      SizedBox(width: 25),
+                      Container(
+                        width: GameBoard.width * 28.0,
+                        height: GameBoard.height * 28.0,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.white70, width: 2.0),
+                          borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                        ),
+                        child: CustomPaint(
+                          painter: TetrisPainter(gameBoard, currentTetromino, currentPosition),
+                        ),
+                      ),
+                    ],
                   ),
-                  SizedBox(height: 50),
+                  if (isGameOver)
+                    Column(
+                      children: [
+                        SizedBox(height: 20),
+                        Text('Game Over', style: TextStyle(fontSize: 24, color: Colors.red)),
+                        ElevatedButton(
+                          onPressed: _restartGame,
+                          child: Text('Restart'),
+                        ),
+                        SizedBox(height: 50),
+                      ],
+                    ),
                 ],
-              ),
+              )
+            else
+              StartScreen(startGame: _startGame),
           ],
         ),
       ),
-      floatingActionButton: Row(
+      floatingActionButton: isGameStarted && !isGameOver
+          ? Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           FloatingActionButton(
@@ -270,6 +285,35 @@ class _TetrisGameState extends State<TetrisGame> {
           FloatingActionButton(
             onPressed: _rotate,
             child: Icon(Icons.rotate_right),
+          ),
+          SizedBox(width: 16),
+          FloatingActionButton(
+            onPressed: _tick,
+            child: Icon(Icons.arrow_downward),
+          ),
+        ],
+      )
+          : null,
+    );
+  }
+}
+
+class StartScreen extends StatelessWidget {
+  final VoidCallback startGame;
+
+  StartScreen({required this.startGame});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text('Tetris', style: TextStyle(fontSize: 48, fontWeight: FontWeight.bold)),
+          SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: startGame,
+            child: Text('Start Game', style: TextStyle(fontSize: 24)),
           ),
         ],
       ),
@@ -355,7 +399,7 @@ class NextTetrominoPainter extends CustomPainter {
 
     // Rysowanie następnego bloku
     for (Offset offset in nextTetromino.shape) {
-      int x = (offset.dx + 1).toInt(); // Centruj blok w oknie
+      int x = (offset.dx).toInt(); // Centruj blok w oknie
       int y = (offset.dy + 1).toInt(); // Centruj blok w oknie
       canvas.drawRect(
         Rect.fromLTWH(x * cellSize, y * cellSize, cellSize, cellSize),
