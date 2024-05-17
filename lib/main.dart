@@ -11,7 +11,7 @@ class TetrisApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Tetris',
-//dupa
+
       home: TetrisGame(),
     );
   }
