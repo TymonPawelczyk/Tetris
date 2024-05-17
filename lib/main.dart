@@ -11,7 +11,6 @@ class TetrisApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Tetris',
-
       home: TetrisGame(),
     );
   }
@@ -84,9 +83,9 @@ class TetrisGame extends StatefulWidget {
 
 class _TetrisGameState extends State<TetrisGame> {
   late Tetromino currentTetromino;
+  late Tetromino nextTetromino;
   Offset currentPosition = Offset(3, 0);
   GameBoard gameBoard = GameBoard();
-  // Color backgroudColor = Colors.black;
   int score = 0;
   late Timer _timer;
   bool isGameOver = false;
@@ -98,6 +97,7 @@ class _TetrisGameState extends State<TetrisGame> {
   }
 
   void _startGame() {
+    nextTetromino = Tetromino.all[Random().nextInt(Tetromino.all.length)];
     _generateNewTetromino();
     _timer = Timer.periodic(Duration(milliseconds: 500), (_) => _tick());
   }
@@ -112,7 +112,8 @@ class _TetrisGameState extends State<TetrisGame> {
   }
 
   void _generateNewTetromino() {
-    currentTetromino = Tetromino.all[Random().nextInt(Tetromino.all.length)];
+    currentTetromino = nextTetromino;
+    nextTetromino = Tetromino.all[Random().nextInt(Tetromino.all.length)];
     currentPosition = Offset(3, 0);
   }
 
@@ -210,23 +211,39 @@ class _TetrisGameState extends State<TetrisGame> {
           children: [
             Text('Score: $score', style: TextStyle(fontSize: 24)),
             SizedBox(height: 20),
-            Container(
-              width: GameBoard.width * 30.0,
-              height: GameBoard.height * 30.0,
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.white70, width: 2.0),
-                borderRadius: BorderRadius.all(Radius.circular(10.0)),
-              ),
-              child: CustomPaint(
-                painter: TetrisPainter(gameBoard, currentTetromino, currentPosition),
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 50,  // Zmniejszono szerokość kontenera dla następnego bloku
+                  height: 50, // Zmniejszono wysokość kontenera dla następnego bloku
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.white70, width: 2.0),
+                    borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                  ),
+                  child: CustomPaint(
+                    painter: NextTetrominoPainter(nextTetromino),
+                  ),
+                ),
+                SizedBox(width: 20),
+                Container(
+                  width: GameBoard.width * 20.0,  // Zwiększono szerokość pola gry
+                  height: GameBoard.height * 20.0, // Zwiększono wysokość pola gry
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.white70, width: 2.0),
+                    borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                  ),
+                  child: CustomPaint(
+                    painter: TetrisPainter(gameBoard, currentTetromino, currentPosition),
+                  ),
+                ),
+              ],
             ),
             if (isGameOver)
               Column(
                 children: [
                   SizedBox(height: 20),
                   Text('Game Over', style: TextStyle(fontSize: 24), selectionColor: Colors.red,),
-                  // SizedBox(height: 50),
                   ElevatedButton(
                     onPressed: _restartGame,
                     child: Text('Restart'),
@@ -316,7 +333,6 @@ class TetrisPainter extends CustomPainter {
     }
   }
 
-
   @override
   bool shouldRepaint(covariant TetrisPainter oldDelegate) {
     return oldDelegate.gameBoard != gameBoard ||
@@ -325,3 +341,49 @@ class TetrisPainter extends CustomPainter {
   }
 }
 
+class NextTetrominoPainter extends CustomPainter {
+  final Tetromino nextTetromino;
+
+  NextTetrominoPainter(this.nextTetromino);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final cellSize = size.width / 4;
+    final paint = Paint()
+      ..color = Colors.blue
+      ..style = PaintingStyle.fill;
+
+    // Rysowanie następnego bloku
+    for (Offset offset in nextTetromino.shape) {
+      int x = (offset.dx + 1).toInt(); // Centruj blok w oknie
+      int y = (offset.dy + 1).toInt(); // Centruj blok w oknie
+      canvas.drawRect(
+        Rect.fromLTWH(x * cellSize, y * cellSize, cellSize, cellSize),
+        paint,
+      );
+    }
+
+    // Rysowanie siatki
+    paint.color = Colors.grey.withOpacity(0.5);
+    paint.strokeWidth = 1.0;
+    for (int x = 0; x <= 4; x++) {
+      canvas.drawLine(
+        Offset(x * cellSize, 0),
+        Offset(x * cellSize, 4 * cellSize),
+        paint,
+      );
+    }
+    for (int y = 0; y <= 4; y++) {
+      canvas.drawLine(
+        Offset(0, y * cellSize),
+        Offset(4 * cellSize, y * cellSize),
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant NextTetrominoPainter oldDelegate) {
+    return oldDelegate.nextTetromino != nextTetromino;
+  }
+}
