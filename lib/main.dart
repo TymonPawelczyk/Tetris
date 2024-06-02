@@ -94,6 +94,7 @@ class _TetrisGameState extends State<TetrisGame> {
   @override
   void initState() {
     super.initState();
+    nextTetromino = Tetromino.all[Random().nextInt(Tetromino.all.length)];
     _generateNewTetromino();
   }
 
@@ -118,7 +119,7 @@ class _TetrisGameState extends State<TetrisGame> {
   }
 
   void _generateNewTetromino() {
-    currentTetromino = Tetromino.all[Random().nextInt(Tetromino.all.length)];
+    currentTetromino = nextTetromino;
     nextTetromino = Tetromino.all[Random().nextInt(Tetromino.all.length)];
     currentPosition = Offset(3, 0);
   }
@@ -160,7 +161,6 @@ class _TetrisGameState extends State<TetrisGame> {
         _timer.cancel();
         setState(() {
           isGameOver = true;
-          isGameStarted = false;
         });
       } else {
         _generateNewTetromino();
